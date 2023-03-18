@@ -1,0 +1,18 @@
+[package]
+name = "dungeonmaker"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+
+[dependencies]
+getrandom = { version = "0.2.8", features= ["js"]}
+macroquad = "0.3.25"
