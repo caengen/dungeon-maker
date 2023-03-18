@@ -65,15 +65,88 @@ fn spawn_blocks_in_area(start: Vec2, end: Vec2, texture: &Texture2D) -> Vec<Bloc
     blocks
 }
 
+pub struct CameraControl {
+    pub pos: Vec2,
+    pub zoom: Vec2,
+}
+pub struct GameState {
+    pub camera: CameraControl,
+}
+
+impl GameState {
+    pub fn new() -> GameState {
+        GameState {
+            camera: CameraControl {
+                pos: vec2(screen_width() / 2.0, screen_height() / 2.0),
+                zoom: vec2(0.0025, 0.0025),
+            },
+        }
+    }
+}
+
+pub fn keyboard_listeners(gs: &mut GameState) {
+    let delta: f32 = if is_key_down(KeyCode::LeftShift) {
+        200.0
+    } else {
+        100.0
+    };
+
+    if is_key_down(KeyCode::Down) {
+        gs.camera.pos.y -= delta * get_frame_time();
+    } else if is_key_down(KeyCode::Up) {
+        gs.camera.pos.y += delta * get_frame_time();
+    } else if is_key_down(KeyCode::Right) {
+        gs.camera.pos.x += delta * get_frame_time();
+    } else if is_key_down(KeyCode::Left) {
+        gs.camera.pos.x -= delta * get_frame_time();
+    }
+
+    if is_key_down(KeyCode::Q) {
+        gs.camera.zoom.y -= 0.010 * get_frame_time();
+        gs.camera.zoom.x -= 0.010 * get_frame_time();
+    } else if is_key_down(KeyCode::E) {
+        gs.camera.zoom.y += 0.010 * get_frame_time();
+        gs.camera.zoom.x += 0.010 * get_frame_time();
+    }
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut gs = GameState::new();
+
     rand::srand(macroquad::miniquad::date::now() as u64);
     let blocks_texture: Texture2D = load_texture("assets/blocks.png").await.unwrap();
     let mut blocks = Vec::new();
-    let mut spawned = spawn_blocks_in_area(vec2(5.0, 5.0), vec2(10.0, 10.0), &blocks_texture);
-    blocks.append(&mut spawned);
+    blocks.append(&mut spawn_blocks_in_area(
+        vec2(15.0, 15.0),
+        vec2(16.0, 16.0),
+        &blocks_texture,
+    ));
+    blocks.append(&mut spawn_blocks_in_area(
+        vec2(0.0, 5.0),
+        vec2(0.0, 10.0),
+        &blocks_texture,
+    ));
+    blocks.append(&mut spawn_blocks_in_area(
+        vec2(0.0, 5.0),
+        vec2(5.0, 5.0),
+        &blocks_texture,
+    ));
+    blocks.append(&mut spawn_blocks_in_area(
+        vec2(0.0, 10.0),
+        vec2(5.0, 10.0),
+        &blocks_texture,
+    ));
     loop {
         clear_background(DARK);
+        keyboard_listeners(&mut gs);
+
+        set_camera(&Camera2D {
+            zoom: gs.camera.zoom,
+            target: gs.camera.pos,
+            ..Default::default()
+        });
+        // set_default_camera();
 
         blocks.iter().for_each(|b| b.draw());
 
