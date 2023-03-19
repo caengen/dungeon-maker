@@ -4,6 +4,11 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
+pub enum Tile {
+    Floor,
+    Wall,
+}
+
 pub struct CameraControl {
     pub pos: Vec2,
     pub zoom: Vec2,
