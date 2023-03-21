@@ -25,23 +25,28 @@ fn window_conf() -> window::Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut world = World::new(64.0, 64.0);
-
     rand::srand(macroquad::miniquad::date::now() as u64);
     let blocks_texture: Texture2D = load_texture("assets/blocks.png").await.unwrap();
-    let dungeon = spawner::test_dungeon();
+
+    let mut world = World::new(64.0, 64.0);
+    let mut dungeon = spawner::test_dungeon();
+    let mut timeline = Timeline::from_drawables(&mut dungeon, 0.1);
+    timeline.start();
+
     loop {
         clear_background(DARK);
-        input(&mut world);
-
         set_camera(&Camera2D {
             zoom: world.camera.zoom,
             target: world.camera.pos,
             ..Default::default()
         });
 
+        input(&mut world);
+        timeline.update(&world);
+
         draw::draw_grid(&world);
-        dungeon.iter().for_each(|b| b.draw(&blocks_texture));
+        // dungeon.iter().for_each(|b| b.draw(&blocks_texture));
+        timeline.draw(&blocks_texture);
 
         next_frame().await
     }
