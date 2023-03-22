@@ -19,10 +19,10 @@ pub fn input(w: &mut World) {
     }
 
     if is_key_down(KeyCode::Q) {
-        w.camera.zoom.y -= 0.010 * get_frame_time();
-        w.camera.zoom.x -= 0.010 * get_frame_time();
+        w.camera.zoom.y -= 0.00010;
+        w.camera.zoom.x -= 0.00010;
     } else if is_key_down(KeyCode::E) {
-        w.camera.zoom.y += 0.010 * get_frame_time();
-        w.camera.zoom.x += 0.010 * get_frame_time();
+        w.camera.zoom.y += 0.00010;
+        w.camera.zoom.x += 0.00010;
     }
 }

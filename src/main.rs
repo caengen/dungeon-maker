@@ -9,14 +9,14 @@ mod input;
 mod spawner;
 
 pub const TILE_SIZE: f32 = 16.0;
-pub const GAME_WIDTH: f32 = 32.0;
-pub const GAME_HEIGHT: f32 = 32.0;
+pub const GAME_WIDTH: f32 = 64.0;
+pub const GAME_HEIGHT: f32 = 64.0;
 
 fn window_conf() -> window::Conf {
     window::Conf {
         window_title: "Dungeonmaker".to_owned(),
-        window_width: (GAME_WIDTH * TILE_SIZE) as i32,
-        window_height: (GAME_HEIGHT * TILE_SIZE) as i32,
+        window_width: (32.0 * TILE_SIZE) as i32,
+        window_height: (32.0 * TILE_SIZE) as i32,
         window_resizable: false,
         high_dpi: false,
         ..Default::default()
@@ -29,7 +29,7 @@ async fn main() {
     let blocks_texture: Texture2D = load_texture("assets/blocks.png").await.unwrap();
 
     let mut world = World::new(64.0, 64.0);
-    let mut dungeon = spawner::test_dungeon();
+    let mut dungeon = spawner::simple_dungeon();
     let mut timeline = Timeline::from_drawables(&mut dungeon, 0.1);
     timeline.start();
 
