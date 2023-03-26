@@ -1,9 +1,9 @@
 use macroquad::{
-    prelude::{is_key_down, KeyCode},
+    prelude::{is_key_down, is_key_released, KeyCode},
     time::get_frame_time,
 };
 
-use crate::components::World;
+use crate::{components::World, spawner};
 
 pub fn input(w: &mut World) {
     let delta: f32 = 200.0;
@@ -24,5 +24,9 @@ pub fn input(w: &mut World) {
     } else if is_key_down(KeyCode::E) {
         w.camera.zoom.y += 0.00010;
         w.camera.zoom.x += 0.00010;
+    }
+
+    if is_key_released(KeyCode::R) {
+        let _ = spawner::generate_dungeon(&mut w.map);
     }
 }

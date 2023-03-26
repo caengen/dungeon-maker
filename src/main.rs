@@ -5,6 +5,7 @@ use components::*;
 use draw::*;
 mod draw;
 use input::*;
+use spawner::dungeon_1;
 mod input;
 mod spawner;
 
@@ -28,10 +29,14 @@ async fn main() {
     rand::srand(macroquad::miniquad::date::now() as u64);
     let blocks_texture: Texture2D = load_texture("assets/blocks.png").await.unwrap();
 
-    let mut world = World::new(64.0, 64.0);
-    let mut dungeon = spawner::simple_dungeon();
-    let mut timeline = Timeline::from_drawables(&mut dungeon, 0.1);
-    timeline.start();
+    let mut world = World::new(GAME_WIDTH, GAME_HEIGHT);
+    // let mut dungeon = spawner::simple_dungeon();
+
+    let _steps = spawner::generate_dungeon(&mut world.map);
+
+    // let mut timeline = Timeline::from_tiles_steps()
+    // let mut timeline = Timeline::from_drawables(&mut dungeon, 0.1);
+    // timeline.start();
 
     loop {
         clear_background(DARK);
@@ -42,11 +47,12 @@ async fn main() {
         });
 
         input(&mut world);
-        timeline.update(&world);
+        // timeline.update(&world);
 
         draw::draw_grid(&world);
         // dungeon.iter().for_each(|b| b.draw(&blocks_texture));
-        timeline.draw(&blocks_texture);
+        // timeline.draw(&blocks_texture);
+        world.map.draw(&blocks_texture);
 
         next_frame().await
     }

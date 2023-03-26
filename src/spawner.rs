@@ -2,7 +2,10 @@ use std::ops::Range;
 
 use macroquad::{prelude::*, texture::Texture2D};
 
-use crate::{components::Block, GAME_HEIGHT, GAME_WIDTH};
+use crate::{
+    components::{Block, Map, Rect, Room, Size, Tile, ROOM_SIZES},
+    GAME_HEIGHT, GAME_WIDTH,
+};
 
 fn spawn_blocks_in_area(start: Vec2, end: Vec2) -> Vec<Block> {
     spawn_tile_in_area(start, end, 0..6)
@@ -77,4 +80,56 @@ pub fn simple_dungeon() -> Vec<Block> {
     }
 
     blocks
+}
+
+pub fn generate_dungeon(map: &mut Map) -> Vec<(Vec2, Tile)> {
+    dungeon_1(map)
+}
+
+pub fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
+    let mut timeline = Vec::new();
+    let rooms_amount = 15;
+    let mut placed_rooms: Vec<Room> = Vec::new();
+    map.tiles = vec![Tile::Dirt; (GAME_WIDTH * GAME_HEIGHT) as usize];
+
+    for i in 0..rooms_amount {
+        let room_size = ROOM_SIZES[rand::gen_range(0, ROOM_SIZES.len())];
+        let mut found_empty_spot = false;
+        while !found_empty_spot {
+            let pos = vec2(
+                rand::gen_range(0.0, map.size.x).floor(),
+                rand::gen_range(0.0, map.size.y).floor(),
+            );
+            if pos.x + room_size.x >= GAME_WIDTH || pos.y + room_size.y >= GAME_HEIGHT {
+                continue;
+            }
+
+            let room = Room::new(pos, room_size);
+            found_empty_spot = !placed_rooms.iter().any(|r| r.intersects(&room));
+
+            if found_empty_spot {
+                placed_rooms.push(room);
+                println!("Placed room at x:{}, y:{}", pos.x, pos.y);
+            }
+        }
+    }
+
+    placed_rooms.iter().for_each(|r| {
+        let w = r.size.x as usize;
+        let h = r.size.y as usize;
+        for x in 0..=w {
+            for y in 0..=h {
+                let tile = match (x, y) {
+                    _ if x == 0 || x == w || y == 0 || y == h => Tile::SoftWall,
+                    _ => Tile::SoftFloor,
+                };
+
+                let idx = map.idx_xy(r.pos.x as usize + x, r.pos.y as usize + y);
+                map.tiles[idx] = tile.clone();
+                timeline.push((vec2(x as f32, y as f32), tile));
+            }
+        }
+    });
+
+    timeline
 }

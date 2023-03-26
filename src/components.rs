@@ -5,15 +5,17 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
-use crate::draw::Drawable;
+use crate::{draw::Drawable, GAME_HEIGHT, GAME_WIDTH};
+
+pub static ROOM_SIZES: [Vec2; 4] = [
+    vec2(5.0, 5.0),
+    vec2(7.0, 7.0),
+    vec2(7.0, 11.0),
+    vec2(11.0, 7.0),
+];
 
 pub trait Updateable {
     fn update(&mut self, world: &World);
-}
-
-pub enum Tile {
-    Floor,
-    Wall,
 }
 
 pub struct CameraControl {
@@ -23,6 +25,23 @@ pub struct CameraControl {
 pub struct World {
     pub size: Vec2,
     pub camera: CameraControl,
+    pub map: Map,
+}
+
+impl World {
+    pub fn new(w: f32, h: f32) -> World {
+        World {
+            size: vec2(w, h),
+            camera: CameraControl {
+                pos: vec2(screen_width() / 2.0, screen_height() / 2.0),
+                zoom: vec2(0.0025, 0.0025),
+            },
+            map: Map {
+                size: vec2(GAME_WIDTH, GAME_HEIGHT),
+                tiles: vec![Tile::Dirt; (GAME_WIDTH * GAME_HEIGHT) as usize],
+            },
+        }
+    }
 }
 
 pub struct Block {
@@ -139,14 +158,84 @@ impl Updateable for Timeline<'_> {
     }
 }
 
-impl World {
-    pub fn new(w: f32, h: f32) -> World {
-        World {
-            size: vec2(w, h),
-            camera: CameraControl {
-                pos: vec2(screen_width() / 2.0, screen_height() / 2.0),
-                zoom: vec2(0.0025, 0.0025),
-            },
+#[derive(Clone)]
+pub enum Tile {
+    SoftWall,
+    HardWall,
+    HardFloor,
+    SoftFloor,
+    Dirt,
+    Bedrock,
+}
+
+pub struct Map {
+    pub size: Vec2,
+    pub tiles: Vec<Tile>,
+}
+
+impl Map {
+    pub fn idx(&self, pos: Vec2) -> usize {
+        (pos.y * self.size.y + pos.x) as usize
+    }
+
+    pub fn idx_xy(&self, x: usize, y: usize) -> usize {
+        y * self.size.y as usize + x
+    }
+
+    pub fn pos_idx(&self, idx: usize) -> Vec2 {
+        Vec2 {
+            x: idx as f32 % self.size.x,
+            y: (idx as f32 / self.size.x) % self.size.y,
         }
+    }
+}
+
+pub struct Room {
+    pub pos: Vec2,
+    pub size: Vec2,
+}
+
+impl Room {
+    pub fn new(pos: Vec2, size: Vec2) -> Room {
+        Room { pos, size }
+    }
+}
+
+pub trait Position {
+    fn pos(&self) -> Vec2;
+}
+
+impl Position for Room {
+    fn pos(&self) -> Vec2 {
+        self.pos
+    }
+}
+
+pub trait Size {
+    fn width(&self) -> f32;
+    fn height(&self) -> f32;
+}
+
+impl Size for Room {
+    fn width(&self) -> f32 {
+        self.size.x
+    }
+    fn height(&self) -> f32 {
+        self.size.y
+    }
+}
+
+pub trait Rect {
+    fn intersects<T: Rect + Position + Size>(&self, other: &T) -> bool;
+}
+
+impl Rect for Room {
+    fn intersects<T: Rect + Position + Size>(&self, other: &T) -> bool {
+        let left = f32::max(self.pos.x, other.pos().x);
+        let right = f32::min(self.pos.x + self.size.x, other.pos().x + other.width());
+        let top = f32::max(self.pos.y, other.pos().y);
+        let bottom = f32::min(self.pos.y + self.size.y, other.pos().y + other.height());
+
+        left < right && top < bottom
     }
 }
