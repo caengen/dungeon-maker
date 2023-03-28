@@ -5,7 +5,6 @@ use components::*;
 use draw::*;
 mod draw;
 use input::*;
-use spawner::dungeon_1;
 mod input;
 mod spawner;
 

@@ -42,7 +42,7 @@ impl Drawable for Block {
 impl Drawable for Map {
     fn draw(&self, texture: &Texture2D) {
         self.tiles.iter().enumerate().for_each(|(idx, tile)| {
-            let pos = self.pos_idx(idx);
+            let pos = self.idx_to_vec2(idx);
             let atlas_pos = match tile {
                 Tile::SoftWall => Some(vec2(0.0, 0.0)),
                 Tile::SoftFloor => Some(vec2(6.0, 0.0)),

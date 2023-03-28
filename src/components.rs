@@ -158,7 +158,7 @@ impl Updateable for Timeline<'_> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Tile {
     SoftWall,
     HardWall,
@@ -182,11 +182,20 @@ impl Map {
         y * self.size.y as usize + x
     }
 
-    pub fn pos_idx(&self, idx: usize) -> Vec2 {
+    pub fn idx_to_vec2(&self, idx: usize) -> Vec2 {
         Vec2 {
             x: idx as f32 % self.size.x,
-            y: (idx as f32 / self.size.x) % self.size.y,
+            y: (idx as f32 / self.size.x).floor(),
         }
+    }
+
+    pub fn tile_at_pos(&self, pos: Vec2) -> Option<&Tile> {
+        let idx = self.idx(pos);
+        if pos.x < 0.0 || pos.y < 0.0 || idx >= self.tiles.len() {
+            return None;
+        }
+
+        Some(&self.tiles[idx])
     }
 }
 
