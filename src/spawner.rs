@@ -127,6 +127,11 @@ fn surrounding_idxs(map: &Map, idx: usize) -> Vec<usize> {
         .collect()
 }
 
+fn get_tile_at_pos(map: &Map, pos: Vec2) -> Option<&Tile> {
+    let idx = map.idx(pos);
+    map.tiles.get(idx)
+}
+
 fn adjecent_idxs(map: &Map, idx: usize) -> Vec<usize> {
     let adjecent_vecs = vec![
         vec2(0.0, -1.0), // top center
@@ -217,8 +222,8 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
     let mut timeline = Vec::new();
     map.tiles = vec![Tile::Dirt; (GAME_WIDTH * GAME_HEIGHT) as usize];
 
+    // place rooms
     let rooms = generate_rooms(20, map.size);
-
     rooms.iter().for_each(|r| {
         let w = r.size.x as usize;
         let h = r.size.y as usize;
@@ -236,6 +241,7 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
         }
     });
 
+    // place corridors
     let starting_points = neighbourless_idxs(&map);
     // println!("Found starting points {:?}", starting_points);
     // let rand_start = starting_points[rand::gen_range(0, starting_points.len() - 1)];
@@ -246,5 +252,59 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
         visited.iter().for_each(|v| map.tiles[*v] = Tile::SoftFloor);
     }
 
+    // group possible doors by room edge and pick one for each edge of each room
+    rooms.iter().for_each(|r| {
+        let w = r.size.x as i32;
+        let h = r.size.y as i32;
+
+        // traverse bottom
+        generate_doors(map, r, 0..w, 0..1, vec2(0.0, -1.0), vec2(0.0, -2.0));
+        // traverse top
+        generate_doors(map, r, 0..w, h..(h + 1), vec2(0.0, 1.0), vec2(0.0, 2.0));
+        // traverse left
+        generate_doors(map, r, 0..1, 0..h, vec2(-1.0, 0.0), vec2(-2.0, 0.0));
+        // traverse right
+        generate_doors(map, r, w..(w + 1), 0..h, vec2(1.0, 0.0), vec2(2.0, 0.0));
+    });
+
     timeline
+}
+
+fn generate_doors(
+    map: &mut Map,
+    room: &Room,
+    x_max: Range<i32>,
+    y_max: Range<i32>,
+    door_pos: Vec2,
+    other_room_pos: Vec2,
+) {
+    let mut group = Vec::new();
+    // traverse bottom
+    for x in x_max.clone() {
+        for y in y_max.clone() {
+            let maybe_door_pos = vec2(
+                room.pos.x + x as f32 + door_pos.x,
+                room.pos.y + y as f32 + door_pos.y,
+            );
+            let maybe_door_tile = get_tile_at_pos(map, maybe_door_pos);
+            let maybe_other_room_tile = get_tile_at_pos(
+                map,
+                vec2(
+                    room.pos.x + x as f32 + other_room_pos.x,
+                    room.pos.y + y as f32 + other_room_pos.y,
+                ),
+            );
+            if maybe_door_tile.is_some() && maybe_other_room_tile.is_some() {
+                let tile_space = maybe_door_tile.unwrap();
+                let tile_maybe_connection = maybe_other_room_tile.unwrap();
+                if !is_room(tile_space) && is_room(tile_maybe_connection) {
+                    group.push(map.idx(maybe_door_pos));
+                }
+            }
+        }
+    }
+
+    if group.len() > 0 {
+        map.tiles[group[rand::gen_range(0, group.len())]] = Tile::SoftFloor;
+    }
 }
