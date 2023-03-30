@@ -188,11 +188,15 @@ fn neighbourless_idxs(map: &Map) -> Vec<usize> {
  * Depth first search to find all tiles that are not connected to any room
  */
 fn dfs(map: &mut Map, visited: &mut Vec<usize>, idx: usize) {
-    if visited.len() > 100 {
+    if visited.len() > 50 {
         return;
     }
-    visited.push(idx);
     let adjecent = adjecent_idxs(map, idx);
+    if is_room(&map.tiles[idx]) || adjecent_to_room(map, idx) {
+        return;
+    } else {
+        visited.push(idx);
+    }
 
     for adj in adjecent.iter() {
         if adj >= &map.tiles.len() || visited.contains(adj) {
@@ -234,10 +238,13 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
 
     let starting_points = neighbourless_idxs(&map);
     // println!("Found starting points {:?}", starting_points);
-    let rand_start = starting_points[rand::gen_range(0, starting_points.len() - 1)];
-    let mut visited: Vec<usize> = Vec::new();
-    dfs(map, &mut visited, rand_start);
-    // println!("Visited {:?}", visited);
-    visited.iter().for_each(|v| map.tiles[*v] = Tile::SoftFloor);
+    // let rand_start = starting_points[rand::gen_range(0, starting_points.len() - 1)];
+    for start in starting_points.iter() {
+        let mut visited: Vec<usize> = Vec::new();
+        dfs(map, &mut visited, *start);
+        // println!("Visited {:?}", visited);
+        visited.iter().for_each(|v| map.tiles[*v] = Tile::SoftFloor);
+    }
+
     timeline
 }
