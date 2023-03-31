@@ -7,12 +7,7 @@ use macroquad::{
 
 use crate::{draw::Drawable, GAME_HEIGHT, GAME_WIDTH};
 
-pub static ROOM_SIZES: [Vec2; 4] = [
-    vec2(5.0, 5.0),
-    vec2(7.0, 7.0),
-    vec2(7.0, 11.0),
-    vec2(11.0, 7.0),
-];
+pub static ROOM_SIZES: [Vec2; 2] = [vec2(5.0, 5.0), vec2(5.0, 7.0)];
 
 pub trait Updateable {
     fn update(&mut self, world: &World);

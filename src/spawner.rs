@@ -8,6 +8,7 @@ use crate::{
 };
 
 const ROOM_GENERATION_ATTEMPTS: i32 = 50;
+const CORRIDOR_MAX_LENGTH: usize = 15;
 
 fn spawn_blocks_in_area(start: Vec2, end: Vec2) -> Vec<Block> {
     spawn_tile_in_area(start, end, 0..6)
@@ -87,6 +88,13 @@ fn generate_rooms(amount: usize, bounds: Vec2) -> Vec<Room> {
     placed_rooms
 }
 
+fn is_floor(tile: &Tile) -> bool {
+    match tile {
+        Tile::SoftFloor | Tile::HardFloor => true,
+        _ => false,
+    }
+}
+
 fn is_room(tile: &Tile) -> bool {
     match tile {
         Tile::SoftFloor | Tile::HardFloor | Tile::SoftWall | Tile::HardWall => true,
@@ -126,6 +134,7 @@ fn surrounding_idxs(map: &Map, idx: usize) -> Vec<usize> {
     adjecent_vecs
         .iter()
         .map(|v| map.idx(map.idx_to_vec2(idx).add(*v)))
+        .filter(|u| u < &map.tiles.len())
         .collect()
 }
 
@@ -195,7 +204,7 @@ fn neighbourless_idxs(map: &Map) -> Vec<usize> {
  * Depth first search to find all tiles that are not connected to any room
  */
 fn dfs(map: &mut Map, visited: &mut Vec<usize>, idx: usize) {
-    if visited.len() > 15 {
+    if visited.len() > CORRIDOR_MAX_LENGTH {
         return;
     }
     let adjecent = adjecent_idxs(map, idx);
@@ -321,6 +330,25 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
             map.tiles[*c] = Tile::Dirt;
         }
     }
+
+    // add walls
+    let mut walls = Vec::new();
+    for (idx, tile) in map.tiles.iter().enumerate() {
+        if !is_floor(tile) {
+            continue;
+        }
+
+        let surrounding = surrounding_idxs(&map, idx);
+        for s in surrounding.iter() {
+            if &map.tiles[*s] == &Tile::Dirt {
+                walls.push(*s);
+            }
+        }
+    }
+
+    walls.iter().for_each(|w| {
+        map.tiles[*w] = Tile::SoftWall;
+    });
 
     timeline
 }

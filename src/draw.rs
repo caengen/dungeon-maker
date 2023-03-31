@@ -7,7 +7,7 @@ use macroquad::{
 
 use crate::{
     components::{Block, Map, Tile, World},
-    TILE_SIZE,
+    rand, TILE_SIZE,
 };
 
 pub const DARK: Color = color_u8!(49, 47, 40, 255);
@@ -28,7 +28,7 @@ impl Drawable for Block {
             DrawTextureParams {
                 dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
                 source: Some(Rect::new(
-                    self.atlas_idx as f32 * TILE_SIZE,
+                    rand::gen_range(0, 3) as f32 * TILE_SIZE,
                     0.0,
                     TILE_SIZE,
                     TILE_SIZE,
