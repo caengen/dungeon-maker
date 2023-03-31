@@ -7,6 +7,8 @@ use crate::{
     GAME_HEIGHT, GAME_WIDTH,
 };
 
+const ROOM_GENERATION_ATTEMPTS: i32 = 50;
+
 fn spawn_blocks_in_area(start: Vec2, end: Vec2) -> Vec<Block> {
     spawn_tile_in_area(start, end, 0..6)
 }
@@ -63,7 +65,7 @@ fn generate_rooms(amount: usize, bounds: Vec2) -> Vec<Room> {
         let room_size = ROOM_SIZES[rand::gen_range(0, ROOM_SIZES.len())];
         let mut found_empty_spot = false;
         let mut attemps = 0;
-        while !found_empty_spot && attemps < 50 {
+        while !found_empty_spot && attemps < ROOM_GENERATION_ATTEMPTS {
             let pos = vec2(
                 rand::gen_range(0.0, bounds.x).floor(),
                 rand::gen_range(0.0, bounds.y).floor(),
@@ -193,7 +195,7 @@ fn neighbourless_idxs(map: &Map) -> Vec<usize> {
  * Depth first search to find all tiles that are not connected to any room
  */
 fn dfs(map: &mut Map, visited: &mut Vec<usize>, idx: usize) {
-    if visited.len() > 50 {
+    if visited.len() > 15 {
         return;
     }
     let adjecent = adjecent_idxs(map, idx);
@@ -218,12 +220,15 @@ fn dfs(map: &mut Map, visited: &mut Vec<usize>, idx: usize) {
     }
 }
 
+/**
+ * Generate a sparse dungeon with rooms and corridors
+ */
 fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
     let mut timeline = Vec::new();
     map.tiles = vec![Tile::Dirt; (GAME_WIDTH * GAME_HEIGHT) as usize];
 
     // place rooms
-    let rooms = generate_rooms(20, map.size);
+    let rooms = generate_rooms(rand::gen_range(8, 12), map.size);
     rooms.iter().for_each(|r| {
         let w = r.size.x as usize;
         let h = r.size.y as usize;
@@ -243,33 +248,89 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
 
     // place corridors
     let starting_points = neighbourless_idxs(&map);
-    // println!("Found starting points {:?}", starting_points);
-    // let rand_start = starting_points[rand::gen_range(0, starting_points.len() - 1)];
+    let mut corridors = Vec::new();
     for start in starting_points.iter() {
         let mut visited: Vec<usize> = Vec::new();
         dfs(map, &mut visited, *start);
         // println!("Visited {:?}", visited);
         visited.iter().for_each(|v| map.tiles[*v] = Tile::SoftFloor);
+        corridors.push(visited);
     }
 
+    let mut doors = Vec::new();
     // group possible doors by room edge and pick one for each edge of each room
     rooms.iter().for_each(|r| {
         let w = r.size.x as i32;
         let h = r.size.y as i32;
 
         // traverse bottom
-        generate_doors(map, r, 0..w, 0..1, vec2(0.0, -1.0), vec2(0.0, -2.0));
+        doors.push(generate_doors(
+            map,
+            r,
+            0..w,
+            0..1,
+            vec2(0.0, -1.0),
+            vec2(0.0, -2.0),
+        ));
         // traverse top
-        generate_doors(map, r, 0..w, h..(h + 1), vec2(0.0, 1.0), vec2(0.0, 2.0));
+        doors.push(generate_doors(
+            map,
+            r,
+            0..w,
+            h..(h + 1),
+            vec2(0.0, 1.0),
+            vec2(0.0, 2.0),
+        ));
         // traverse left
-        generate_doors(map, r, 0..1, 0..h, vec2(-1.0, 0.0), vec2(-2.0, 0.0));
+        doors.push(generate_doors(
+            map,
+            r,
+            0..1,
+            0..h,
+            vec2(-1.0, 0.0),
+            vec2(-2.0, 0.0),
+        ));
         // traverse right
-        generate_doors(map, r, w..(w + 1), 0..h, vec2(1.0, 0.0), vec2(2.0, 0.0));
+        doors.push(generate_doors(
+            map,
+            r,
+            w..(w + 1),
+            0..h,
+            vec2(1.0, 0.0),
+            vec2(2.0, 0.0),
+        ));
     });
+    let doors = doors
+        .iter()
+        .filter(|d| d.is_some())
+        .map(|d| d.unwrap())
+        .collect::<Vec<usize>>();
+
+    // remove dead ends and non-connected corridors
+    for corridor in corridors.iter() {
+        let adjacents = corridor
+            .iter()
+            .map(|c| adjecent_idxs(map, *c))
+            .flatten()
+            .collect::<Vec<usize>>();
+        if adjacents.iter().any(|a| doors.contains(&a)) {
+            continue;
+        }
+
+        for c in corridor.iter() {
+            map.tiles[*c] = Tile::Dirt;
+        }
+    }
 
     timeline
 }
 
+/**
+ * Takes a room and a range of x and y values. For each x and y value it checks
+ *  if the tile at that the door_pos is "empty" and the tile at the other_room_pos
+ * is floor. If so it stores the index of the door_pos tile. Finally it returns at
+ * random one of the stored indices. If no doors were found it returns None.
+ */
 fn generate_doors(
     map: &mut Map,
     room: &Room,
@@ -277,9 +338,8 @@ fn generate_doors(
     y_max: Range<i32>,
     door_pos: Vec2,
     other_room_pos: Vec2,
-) {
+) -> Option<usize> {
     let mut group = Vec::new();
-    // traverse bottom
     for x in x_max.clone() {
         for y in y_max.clone() {
             let maybe_door_pos = vec2(
@@ -305,6 +365,10 @@ fn generate_doors(
     }
 
     if group.len() > 0 {
-        map.tiles[group[rand::gen_range(0, group.len())]] = Tile::SoftFloor;
+        let chosen = rand::gen_range(0, group.len());
+        map.tiles[group[chosen]] = Tile::SoftFloor;
+        Some(group[chosen])
+    } else {
+        None
     }
 }
