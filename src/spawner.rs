@@ -368,13 +368,13 @@ fn generate_doors(
     other_room_pos: Vec2,
 ) -> Option<usize> {
     let mut group = Vec::new();
-    for x in x_max.clone() {
+    for x in x_max {
         for y in y_max.clone() {
-            let maybe_door_pos = vec2(
+            let door_lookup_pos = vec2(
                 room.pos.x + x as f32 + door_pos.x,
                 room.pos.y + y as f32 + door_pos.y,
             );
-            let maybe_door_tile = get_tile_at_pos(map, maybe_door_pos);
+            let maybe_door_tile = get_tile_at_pos(map, door_lookup_pos);
             let maybe_other_room_tile = get_tile_at_pos(
                 map,
                 vec2(
@@ -386,7 +386,7 @@ fn generate_doors(
                 let tile_space = maybe_door_tile.unwrap();
                 let tile_maybe_connection = maybe_other_room_tile.unwrap();
                 if !is_room(tile_space) && is_room(tile_maybe_connection) {
-                    group.push(map.idx(maybe_door_pos));
+                    group.push(map.idx(door_lookup_pos));
                 }
             }
         }
