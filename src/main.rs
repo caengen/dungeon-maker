@@ -29,27 +29,23 @@ async fn main() {
     let dungeon_texture: Texture2D = load_texture("assets/Dungeon.png").await.unwrap();
 
     let mut world = World::new(GAME_WIDTH, GAME_HEIGHT);
-    // let mut dungeon = spawner::simple_dungeon();
 
     let _steps = spawner::generate_dungeon(&mut world.map);
 
-    // let mut timeline = Timeline::from_tiles_steps()
-    // let mut timeline = Timeline::from_drawables(&mut dungeon, 0.1);
-    // timeline.start();
-
     loop {
         clear_background(DARK);
-        set_camera(&Camera2D {
-            zoom: -world.camera.zoom,
-            target: world.camera.pos,
-            ..Default::default()
+        let camera = Camera2D::from_display_rect(macroquad::math::Rect {
+            x: world.camera.pos.x,
+            y: world.camera.pos.y,
+            w: window::screen_width() * world.camera.zoom,
+            h: window::screen_height() * world.camera.zoom,
         });
+        set_camera(&camera);
 
         input(&mut world);
         // timeline.update(&world);
 
         draw::draw_grid(&world);
-        // dungeon.iter().for_each(|b| b.draw(&blocks_texture));
         // timeline.draw(&blocks_texture);
         world.map.draw(&dungeon_texture);
 

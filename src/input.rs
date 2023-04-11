@@ -6,12 +6,12 @@ use macroquad::{
 use crate::{components::World, spawner};
 
 pub fn input(w: &mut World) {
-    let delta: f32 = 200.0;
+    let delta: f32 = 800.0;
 
     if is_key_down(KeyCode::Down) {
-        w.camera.pos.y -= delta * get_frame_time();
-    } else if is_key_down(KeyCode::Up) {
         w.camera.pos.y += delta * get_frame_time();
+    } else if is_key_down(KeyCode::Up) {
+        w.camera.pos.y -= delta * get_frame_time();
     } else if is_key_down(KeyCode::Right) {
         w.camera.pos.x += delta * get_frame_time();
     } else if is_key_down(KeyCode::Left) {
@@ -19,11 +19,9 @@ pub fn input(w: &mut World) {
     }
 
     if is_key_down(KeyCode::Q) {
-        w.camera.zoom.y -= 0.00010;
-        w.camera.zoom.x -= 0.00010;
+        w.camera.zoom -= 0.010;
     } else if is_key_down(KeyCode::E) {
-        w.camera.zoom.y += 0.00010;
-        w.camera.zoom.x += 0.00010;
+        w.camera.zoom += 0.010;
     }
 
     if is_key_released(KeyCode::R) {

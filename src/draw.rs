@@ -41,7 +41,7 @@ impl Drawable for Block {
 
 impl Drawable for Map {
     fn draw(&self, texture: &Texture2D) {
-        self.textures.iter().enumerate().for_each(|(idx, tex)| {
+        self.draw_tiles.iter().enumerate().for_each(|(idx, tex)| {
             let pos = self.idx_to_vec2(idx);
             let atlas_pos = tex.0;
             let foreground = match self.tiles[idx] {

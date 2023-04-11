@@ -63,7 +63,7 @@ pub trait Updateable {
 
 pub struct CameraControl {
     pub pos: Vec2,
-    pub zoom: Vec2,
+    pub zoom: f32,
 }
 pub struct World {
     pub size: Vec2,
@@ -77,12 +77,15 @@ impl World {
             size: vec2(w, h),
             camera: CameraControl {
                 pos: vec2(screen_width() / 2.0, screen_height() / 2.0),
-                zoom: vec2(0.0025, 0.0025),
+                zoom: 1.0,
             },
             map: Map {
                 size: vec2(GAME_WIDTH, GAME_HEIGHT),
                 tiles: vec![Tile::Dirt; (GAME_WIDTH * GAME_HEIGHT) as usize],
-                textures: vec![Texture::from(vec2(7.0, 0.0)); (GAME_WIDTH * GAME_HEIGHT) as usize],
+                draw_tiles: vec![
+                    AtlasTile::from(vec2(7.0, 0.0));
+                    (GAME_WIDTH * GAME_HEIGHT) as usize
+                ],
             },
         }
     }
@@ -211,12 +214,12 @@ pub enum Tile {
 }
 
 #[derive(Clone, PartialEq, From)]
-pub struct Texture(pub Vec2);
+pub struct AtlasTile(pub Vec2);
 
 pub struct Map {
     pub size: Vec2,
     pub tiles: Vec<Tile>,
-    pub textures: Vec<Texture>,
+    pub draw_tiles: Vec<AtlasTile>,
 }
 
 impl Map {

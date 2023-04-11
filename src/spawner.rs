@@ -4,7 +4,7 @@ use macroquad::{prelude::*, texture::Texture2D};
 
 use crate::{
     components::{
-        Block, Map, Rect, Room, Size, Texture, Tile, WallBottomEnd, WallBottomLeftCorner,
+        AtlasTile, Block, Map, Rect, Room, Size, Tile, WallBottomEnd, WallBottomLeftCorner,
         WallBottomRightCorner, WallCross, WallDownrightT, WallHorLine, WallLeftEnd, WallLeftLyingT,
         WallRightEnd, WallRightLyingT, WallTopEnd, WallTopLeftCorner, WallTopRightCorner,
         WallUprightT, WallVertLine, ROOM_SIZES,
@@ -309,7 +309,10 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
         let mut visited: Vec<usize> = Vec::new();
         dfs(map, &mut visited, *start);
         // println!("Visited {:?}", visited);
-        visited.iter().for_each(|v| map.tiles[*v] = Tile::Floor);
+        visited.iter().for_each(|v| {
+            map.tiles[*v] = Tile::Floor;
+            timeline.push((map.idx_to_vec2(*start), Tile::Floor));
+        });
         corridors.push(visited);
     }
 
@@ -395,21 +398,22 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
 
     walls.iter().for_each(|w| {
         map.tiles[*w] = Tile::Wall;
+        timeline.push((map.idx_to_vec2(*w), Tile::Wall));
     });
 
-    let mut textures = vec![Texture::from(vec2(7.0, 0.0)); (GAME_WIDTH * GAME_HEIGHT) as usize];
+    let mut textures = vec![AtlasTile::from(vec2(7.0, 0.0)); (GAME_WIDTH * GAME_HEIGHT) as usize];
     map.tiles.iter().enumerate().for_each(|(idx, t)| match t {
         Tile::Wall => {
             let surrounding = surrounding_idxs(&map, idx);
             let atlas_pos = get_wall_atlas_pos(&map.tiles, &surrounding);
-            textures[idx] = Texture::from(atlas_pos);
+            textures[idx] = AtlasTile::from(atlas_pos);
         }
-        Tile::Floor => textures[idx] = Texture::from(vec2(8.0, 8.0)),
-        Tile::Door => textures[idx] = Texture::from(vec2(6.0, 2.0)),
-        Tile::Dirt => textures[idx] = Texture::from(vec2(9.0, 6.0)),
+        Tile::Floor => textures[idx] = AtlasTile::from(vec2(8.0, 8.0)),
+        Tile::Door => textures[idx] = AtlasTile::from(vec2(6.0, 2.0)),
+        Tile::Dirt => textures[idx] = AtlasTile::from(vec2(9.0, 6.0)),
         _ => {}
     });
-    map.textures = textures;
+    map.draw_tiles = textures;
 
     timeline
 }
@@ -455,7 +459,11 @@ fn generate_doors(
 
     if group.len() > 0 {
         let chosen = rand::gen_range(0, group.len());
-        map.tiles[group[chosen]] = Tile::Door;
+        map.tiles[group[chosen]] = if rand::gen_range(0.0, 1.0) > 0.5 {
+            Tile::Door
+        } else {
+            Tile::Floor
+        };
         Some(group[chosen])
     } else {
         None
