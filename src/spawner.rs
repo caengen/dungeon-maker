@@ -3,7 +3,7 @@ use std::ops::{Add, Range};
 use macroquad::{prelude::*, texture::Texture2D};
 
 use crate::{
-    components::{Block, Map, Rect, Room, Size, Tile, ROOM_SIZES},
+    components::{Block, Map, Rect, Room, Size, Texture, Tile, ROOM_SIZES},
     GAME_HEIGHT, GAME_WIDTH,
 };
 
@@ -90,14 +90,14 @@ fn generate_rooms(amount: usize, bounds: Vec2) -> Vec<Room> {
 
 fn is_floor(tile: &Tile) -> bool {
     match tile {
-        Tile::SoftFloor | Tile::HardFloor => true,
+        Tile::Floor => true,
         _ => false,
     }
 }
 
 fn is_room(tile: &Tile) -> bool {
     match tile {
-        Tile::SoftFloor | Tile::HardFloor | Tile::SoftWall | Tile::HardWall => true,
+        Tile::Floor | Tile::Wall => true,
         _ => false,
     }
 }
@@ -136,6 +136,48 @@ fn surrounding_idxs(map: &Map, idx: usize) -> Vec<usize> {
         .map(|v| map.idx(map.idx_to_vec2(idx).add(*v)))
         .filter(|u| u < &map.tiles.len())
         .collect()
+}
+
+fn get_wall_atlas_pos(tiles: &Vec<Tile>, surrounding: &Vec<usize>) -> Vec2 {
+    let matches = surrounding
+        .iter()
+        .map(|idx| tiles.get(*idx))
+        .map(|t| match t {
+            Some(Tile::Wall) => true,
+            _ => false,
+        })
+        .collect::<Vec<bool>>();
+
+    //Cross,
+    // HorinzontalCenter,
+    // HorisonalLeftEnd,
+    // HorisonalRightEnd,
+    // VerticalCenter,
+    // ReverseL,
+    // L,
+    // T,
+    // ReverseT,
+    match matches[..] {
+        // end pieces
+        [_, false, _, true, false, _, false, _] => vec2(3.0, 1.0), // right end
+        [_, false, _, false, true, _, false, _] => vec2(2.0, 2.0), // left end
+        [_, false, _, false, false, _, true, _] => vec2(1.0, 2.0), // top end
+        [_, true, _, false, false, _, false, _] => vec2(0.0, 2.0), // bottom end
+        // connectors
+        [false, true, false, true, true, false, true, false] => vec2(5.0, 0.0), // Cross
+        [_, true, _, false, false, _, true, _] => vec2(4.0, 1.0),               // Pole
+        [_, false, _, true, true, _, false, _] => vec2(3.0, 0.0),               // Line
+        [_, false, _, true, true, _, true, _] => vec2(0.0, 0.0),                // T
+        [_, true, _, true, true, _, false, _] => vec2(1.0, 1.0),                // Upside down T
+        [_, true, _, true, false, _, true, _] => vec2(1.0, 0.0),                // rightward lying T
+        [_, true, _, false, true, _, true, _] => vec2(0.0, 1.0),                // leftward lying T
+        // corners
+        [_, false, _, false, true, _, true, _] => vec2(2.0, 0.0), // top left corner
+        [_, false, _, true, false, _, true, _] => vec2(4.0, 0.0), // top right corner
+        [_, true, _, false, true, _, false, _] => vec2(2.0, 1.0), // bottom left corner
+        [_, true, _, true, false, _, false, _] => vec2(4.0, 2.0), // bottom right corner
+        _ => vec2(8.0, 0.0),
+    }
 }
 
 fn get_tile_at_pos(map: &Map, pos: Vec2) -> Option<&Tile> {
@@ -244,8 +286,8 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
         for x in 0..=w {
             for y in 0..=h {
                 let tile = match (x, y) {
-                    _ if x == 0 || x == w || y == 0 || y == h => Tile::SoftFloor,
-                    _ => Tile::SoftFloor,
+                    _ if x == 0 || x == w || y == 0 || y == h => Tile::Floor,
+                    _ => Tile::Floor,
                 };
 
                 let idx = map.idx_xy(r.pos.x as usize + x, r.pos.y as usize + y);
@@ -262,7 +304,7 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
         let mut visited: Vec<usize> = Vec::new();
         dfs(map, &mut visited, *start);
         // println!("Visited {:?}", visited);
-        visited.iter().for_each(|v| map.tiles[*v] = Tile::SoftFloor);
+        visited.iter().for_each(|v| map.tiles[*v] = Tile::Floor);
         corridors.push(visited);
     }
 
@@ -347,8 +389,20 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
     }
 
     walls.iter().for_each(|w| {
-        map.tiles[*w] = Tile::SoftWall;
+        map.tiles[*w] = Tile::Wall;
     });
+
+    let mut textures = vec![Texture::from(vec2(7.0, 0.0)); (GAME_WIDTH * GAME_HEIGHT) as usize];
+    map.tiles.iter().enumerate().for_each(|(idx, t)| match t {
+        Tile::Wall => {
+            let surrounding = surrounding_idxs(&map, idx);
+            let atlas_pos = get_wall_atlas_pos(&map.tiles, &surrounding);
+            textures[idx] = Texture::from(atlas_pos);
+        }
+        Tile::Floor => textures[idx] = Texture::from(vec2(8.0, 8.0)),
+        _ => {}
+    });
+    map.textures = textures;
 
     timeline
 }
@@ -394,7 +448,7 @@ fn generate_doors(
 
     if group.len() > 0 {
         let chosen = rand::gen_range(0, group.len());
-        map.tiles[group[chosen]] = Tile::SoftFloor;
+        map.tiles[group[chosen]] = Tile::Floor;
         Some(group[chosen])
     } else {
         None

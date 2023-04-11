@@ -26,7 +26,7 @@ fn window_conf() -> window::Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     rand::srand(macroquad::miniquad::date::now() as u64);
-    let blocks_texture: Texture2D = load_texture("assets/blocks.png").await.unwrap();
+    let dungeon_texture: Texture2D = load_texture("assets/Dungeon.png").await.unwrap();
 
     let mut world = World::new(GAME_WIDTH, GAME_HEIGHT);
     // let mut dungeon = spawner::simple_dungeon();
@@ -40,7 +40,7 @@ async fn main() {
     loop {
         clear_background(DARK);
         set_camera(&Camera2D {
-            zoom: world.camera.zoom,
+            zoom: -world.camera.zoom,
             target: world.camera.pos,
             ..Default::default()
         });
@@ -51,7 +51,7 @@ async fn main() {
         draw::draw_grid(&world);
         // dungeon.iter().for_each(|b| b.draw(&blocks_texture));
         // timeline.draw(&blocks_texture);
-        world.map.draw(&blocks_texture);
+        world.map.draw(&dungeon_texture);
 
         next_frame().await
     }

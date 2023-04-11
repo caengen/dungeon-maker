@@ -14,5 +14,6 @@ opt-level = 3
 lto = "thin"
 
 [dependencies]
+derive_more = "0.99.17"
 getrandom = { version = "0.2.8", features= ["js"]}
 macroquad = "0.3.25"

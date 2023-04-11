@@ -1,3 +1,5 @@
+use crate::{draw::Drawable, GAME_HEIGHT, GAME_WIDTH};
+use derive_more::From;
 use macroquad::{
     prelude::{vec2, Vec2},
     texture::{draw_texture_ex, Texture2D},
@@ -5,9 +7,32 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
-use crate::{draw::Drawable, GAME_HEIGHT, GAME_WIDTH};
-
 pub static ROOM_SIZES: [Vec2; 2] = [vec2(5.0, 5.0), vec2(5.0, 7.0)];
+
+#[derive(PartialEq)]
+pub enum WallMaterial {
+    Stone,
+    Brick,
+}
+#[derive(PartialEq)]
+pub enum WallType {
+    Cross,
+    HorinzontalCenter,
+    HorisonalLeftEnd,
+    HorisonalRightEnd,
+    VerticalCenter,
+    ReverseL,
+    L,
+    T,
+    ReverseT,
+}
+
+#[derive(PartialEq)]
+pub struct Wall {
+    pub material: WallMaterial,
+    pub wall_type: WallType,
+    pub atlas_pos: Vec2,
+}
 
 pub trait Updateable {
     fn update(&mut self, world: &World);
@@ -34,6 +59,7 @@ impl World {
             map: Map {
                 size: vec2(GAME_WIDTH, GAME_HEIGHT),
                 tiles: vec![Tile::Dirt; (GAME_WIDTH * GAME_HEIGHT) as usize],
+                textures: vec![Texture::from(vec2(7.0, 0.0)); (GAME_WIDTH * GAME_HEIGHT) as usize],
             },
         }
     }
@@ -155,17 +181,18 @@ impl Updateable for Timeline<'_> {
 
 #[derive(Clone, PartialEq)]
 pub enum Tile {
-    SoftWall,
-    HardWall,
-    HardFloor,
-    SoftFloor,
+    Wall,
+    Floor,
     Dirt,
-    Bedrock,
 }
+
+#[derive(Clone, PartialEq, From)]
+pub struct Texture(pub Vec2);
 
 pub struct Map {
     pub size: Vec2,
     pub tiles: Vec<Tile>,
+    pub textures: Vec<Texture>,
 }
 
 impl Map {
