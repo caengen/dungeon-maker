@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use macroquad::{prelude::*, texture::Texture2D};
+use macroquad::{prelude::*, rand::ChooseRandom, texture::Texture2D};
 
 use crate::{
     components::{AtlasTile, Block, Map, Rect, Room, Size, Tile, ROOM_SIZES},
@@ -12,7 +12,7 @@ use crate::{
 };
 
 const ROOM_GENERATION_ATTEMPTS: i32 = 50;
-const CORRIDOR_MAX_LENGTH: usize = 15;
+const CORRIDOR_MAX_LENGTH: usize = 20;
 
 pub fn generate_dungeon(map: &mut Map) -> Vec<(Vec2, Tile)> {
     dungeon_1(map)
@@ -109,13 +109,14 @@ fn dfs(map: &mut Map, visited: &mut Vec<usize>, idx: usize) {
     if visited.len() > CORRIDOR_MAX_LENGTH {
         return;
     }
-    let adjecent = adjecent_idxs(map, idx);
+    let mut adjecent = adjecent_idxs(map, idx);
     if is_room(&map.tiles[idx]) || is_adjecent_to_room(map, idx) {
         return;
     } else {
         visited.push(idx);
     }
 
+    adjecent.shuffle();
     for adj in adjecent.iter() {
         if adj >= &map.tiles.len() || visited.contains(adj) {
             continue;
