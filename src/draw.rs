@@ -44,12 +44,17 @@ impl Drawable for Map {
         self.textures.iter().enumerate().for_each(|(idx, tex)| {
             let pos = self.idx_to_vec2(idx);
             let atlas_pos = tex.0;
+            let foreground = match self.tiles[idx] {
+                Tile::Dirt => DARK,
+                _ => LIGHT,
+            };
+
             // if let Some(atlas_pos) = atlas_pos {
             draw_texture_ex(
                 *texture,
                 pos.x * TILE_SIZE,
                 pos.y * TILE_SIZE,
-                LIGHT,
+                foreground,
                 DrawTextureParams {
                     dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
                     source: Some(Rect::new(

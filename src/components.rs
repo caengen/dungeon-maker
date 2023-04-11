@@ -14,6 +14,29 @@ pub enum WallMaterial {
     Stone,
     Brick,
 }
+
+// Ends
+pub const WallRightEnd: Vec2 = vec2(3.0, 1.0);
+pub const WallLeftEnd: Vec2 = vec2(2.0, 2.0);
+pub const WallTopEnd: Vec2 = vec2(1.0, 2.0);
+pub const WallBottomEnd: Vec2 = vec2(0.0, 2.0);
+
+pub const WallCross: Vec2 = vec2(5.0, 0.0);
+pub const WallVertLine: Vec2 = vec2(4.0, 1.0);
+pub const WallHorLine: Vec2 = vec2(3.0, 0.0);
+
+// Ts
+pub const WallUprightT: Vec2 = vec2(0.0, 0.0);
+pub const WallDownrightT: Vec2 = vec2(1.0, 1.0);
+pub const WallRightLyingT: Vec2 = vec2(1.0, 0.0);
+pub const WallLeftLyingT: Vec2 = vec2(0.0, 1.0);
+
+// Corners
+pub const WallTopLeftCorner: Vec2 = vec2(2.0, 0.0);
+pub const WallTopRightCorner: Vec2 = vec2(4.0, 0.0);
+pub const WallBottomLeftCorner: Vec2 = vec2(2.0, 1.0);
+pub const WallBottomRightCorner: Vec2 = vec2(4.0, 2.0);
+
 #[derive(PartialEq)]
 pub enum WallType {
     Cross,
@@ -183,6 +206,7 @@ impl Updateable for Timeline<'_> {
 pub enum Tile {
     Wall,
     Floor,
+    Door,
     Dirt,
 }
 

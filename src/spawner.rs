@@ -3,7 +3,12 @@ use std::ops::{Add, Range};
 use macroquad::{prelude::*, texture::Texture2D};
 
 use crate::{
-    components::{Block, Map, Rect, Room, Size, Texture, Tile, ROOM_SIZES},
+    components::{
+        Block, Map, Rect, Room, Size, Texture, Tile, WallBottomEnd, WallBottomLeftCorner,
+        WallBottomRightCorner, WallCross, WallDownrightT, WallHorLine, WallLeftEnd, WallLeftLyingT,
+        WallRightEnd, WallRightLyingT, WallTopEnd, WallTopLeftCorner, WallTopRightCorner,
+        WallUprightT, WallVertLine, ROOM_SIZES,
+    },
     GAME_HEIGHT, GAME_WIDTH,
 };
 
@@ -159,23 +164,23 @@ fn get_wall_atlas_pos(tiles: &Vec<Tile>, surrounding: &Vec<usize>) -> Vec2 {
     // ReverseT,
     match matches[..] {
         // end pieces
-        [_, false, _, true, false, _, false, _] => vec2(3.0, 1.0), // right end
-        [_, false, _, false, true, _, false, _] => vec2(2.0, 2.0), // left end
-        [_, false, _, false, false, _, true, _] => vec2(1.0, 2.0), // top end
-        [_, true, _, false, false, _, false, _] => vec2(0.0, 2.0), // bottom end
+        [_, false, _, true, false, _, false, _] => WallRightEnd,
+        [_, false, _, false, true, _, false, _] => WallLeftEnd,
+        [_, false, _, false, false, _, true, _] => WallTopEnd,
+        [_, true, _, false, false, _, false, _] => WallBottomEnd,
         // connectors
-        [false, true, false, true, true, false, true, false] => vec2(5.0, 0.0), // Cross
-        [_, true, _, false, false, _, true, _] => vec2(4.0, 1.0),               // Pole
-        [_, false, _, true, true, _, false, _] => vec2(3.0, 0.0),               // Line
-        [_, false, _, true, true, _, true, _] => vec2(0.0, 0.0),                // T
-        [_, true, _, true, true, _, false, _] => vec2(1.0, 1.0),                // Upside down T
-        [_, true, _, true, false, _, true, _] => vec2(1.0, 0.0),                // rightward lying T
-        [_, true, _, false, true, _, true, _] => vec2(0.0, 1.0),                // leftward lying T
+        [_, true, _, true, true, _, true, _] => WallCross,
+        [_, true, _, false, false, _, true, _] => WallVertLine,
+        [_, false, _, true, true, _, false, _] => WallHorLine,
+        [_, false, _, true, true, _, true, _] => WallUprightT,
+        [_, true, _, true, true, _, false, _] => WallDownrightT,
+        [_, true, _, true, false, _, true, _] => WallRightLyingT,
+        [_, true, _, false, true, _, true, _] => WallLeftLyingT,
         // corners
-        [_, false, _, false, true, _, true, _] => vec2(2.0, 0.0), // top left corner
-        [_, false, _, true, false, _, true, _] => vec2(4.0, 0.0), // top right corner
-        [_, true, _, false, true, _, false, _] => vec2(2.0, 1.0), // bottom left corner
-        [_, true, _, true, false, _, false, _] => vec2(4.0, 2.0), // bottom right corner
+        [_, false, _, false, true, _, true, _] => WallTopLeftCorner,
+        [_, false, _, true, false, _, true, _] => WallTopRightCorner,
+        [_, true, _, false, true, _, false, _] => WallBottomLeftCorner,
+        [_, true, _, true, false, _, false, _] => WallBottomRightCorner,
         _ => vec2(8.0, 0.0),
     }
 }
@@ -400,6 +405,8 @@ fn dungeon_1(map: &mut Map) -> Vec<(Vec2, Tile)> {
             textures[idx] = Texture::from(atlas_pos);
         }
         Tile::Floor => textures[idx] = Texture::from(vec2(8.0, 8.0)),
+        Tile::Door => textures[idx] = Texture::from(vec2(6.0, 2.0)),
+        Tile::Dirt => textures[idx] = Texture::from(vec2(9.0, 6.0)),
         _ => {}
     });
     map.textures = textures;
@@ -448,7 +455,7 @@ fn generate_doors(
 
     if group.len() > 0 {
         let chosen = rand::gen_range(0, group.len());
-        map.tiles[group[chosen]] = Tile::Floor;
+        map.tiles[group[chosen]] = Tile::Door;
         Some(group[chosen])
     } else {
         None
