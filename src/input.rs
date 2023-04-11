@@ -3,7 +3,7 @@ use macroquad::{
     time::get_frame_time,
 };
 
-use crate::{components::World, spawner};
+use crate::{components::World, level};
 
 pub fn input(w: &mut World) {
     let delta: f32 = 800.0;
@@ -25,6 +25,6 @@ pub fn input(w: &mut World) {
     }
 
     if is_key_released(KeyCode::R) {
-        let _ = spawner::generate_dungeon(&mut w.map);
+        let _ = level::generate_dungeon(&mut w.map);
     }
 }

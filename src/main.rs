@@ -6,7 +6,8 @@ use draw::*;
 mod draw;
 use input::*;
 mod input;
-mod spawner;
+mod level;
+mod level_utils;
 
 pub const TILE_SIZE: f32 = 16.0;
 pub const GAME_WIDTH: f32 = 64.0;
@@ -30,7 +31,7 @@ async fn main() {
 
     let mut world = World::new(GAME_WIDTH, GAME_HEIGHT);
 
-    let _steps = spawner::generate_dungeon(&mut world.map);
+    let _steps = level::generate_dungeon(&mut world.map);
 
     loop {
         clear_background(DARK);

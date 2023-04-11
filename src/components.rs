@@ -16,26 +16,26 @@ pub enum WallMaterial {
 }
 
 // Ends
-pub const WallRightEnd: Vec2 = vec2(3.0, 1.0);
-pub const WallLeftEnd: Vec2 = vec2(2.0, 2.0);
-pub const WallTopEnd: Vec2 = vec2(1.0, 2.0);
-pub const WallBottomEnd: Vec2 = vec2(0.0, 2.0);
+pub const WALL_RIGHT_END: Vec2 = vec2(3.0, 1.0);
+pub const WALL_LEFT_END: Vec2 = vec2(2.0, 2.0);
+pub const WALL_TOP_END: Vec2 = vec2(1.0, 2.0);
+pub const WALL_BOTTOM_END: Vec2 = vec2(0.0, 2.0);
 
-pub const WallCross: Vec2 = vec2(5.0, 0.0);
-pub const WallVertLine: Vec2 = vec2(4.0, 1.0);
-pub const WallHorLine: Vec2 = vec2(3.0, 0.0);
+pub const WALL_CROSS: Vec2 = vec2(5.0, 0.0);
+pub const WALL_VERT_LINE: Vec2 = vec2(4.0, 1.0);
+pub const WALL_HOR_LINE: Vec2 = vec2(3.0, 0.0);
 
 // Ts
-pub const WallUprightT: Vec2 = vec2(0.0, 0.0);
-pub const WallDownrightT: Vec2 = vec2(1.0, 1.0);
-pub const WallRightLyingT: Vec2 = vec2(1.0, 0.0);
-pub const WallLeftLyingT: Vec2 = vec2(0.0, 1.0);
+pub const WALL_UPRIGHT_T: Vec2 = vec2(0.0, 0.0);
+pub const WALL_DOWNRIGHT_T: Vec2 = vec2(1.0, 1.0);
+pub const WALL_RIGHT_LYING_T: Vec2 = vec2(1.0, 0.0);
+pub const WALL_LEFT_LYING_T: Vec2 = vec2(0.0, 1.0);
 
 // Corners
-pub const WallTopLeftCorner: Vec2 = vec2(2.0, 0.0);
-pub const WallTopRightCorner: Vec2 = vec2(4.0, 0.0);
-pub const WallBottomLeftCorner: Vec2 = vec2(2.0, 1.0);
-pub const WallBottomRightCorner: Vec2 = vec2(4.0, 2.0);
+pub const WALL_TOP_LEFT_CORNER: Vec2 = vec2(2.0, 0.0);
+pub const WALL_TOP_RIGHT_CORNER: Vec2 = vec2(4.0, 0.0);
+pub const WALL_BOTTOM_LEFT_CORNER: Vec2 = vec2(2.0, 1.0);
+pub const WALL_BOTTOM_RIGHT_CORNER: Vec2 = vec2(4.0, 2.0);
 
 #[derive(PartialEq)]
 pub enum WallType {
