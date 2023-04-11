@@ -1,4 +1,4 @@
-[![wasm build](https://github.com/caengen/dungeonmaker/actions/workflows/rust.yml/badge.svg)](https://github.com/caengen/dungeonmaker/actions/workflows/rust.yml)
+[![wasm build](https://github.com/caengen/dungeon-maker/actions/workflows/rust.yml/badge.svg)](https://github.com/caengen/dungeon-maker/actions/workflows/rust.yml)
 
 Run `cargo run`.
 
