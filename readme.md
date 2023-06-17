@@ -1,5 +1,7 @@
 [![wasm build](https://github.com/caengen/dungeon-maker/actions/workflows/rust.yml/badge.svg)](https://github.com/caengen/dungeon-maker/actions/workflows/rust.yml)
 
+Helper project to explore random dungeon creation.
+
 Run `cargo run`.
 
 ### Keybindings
